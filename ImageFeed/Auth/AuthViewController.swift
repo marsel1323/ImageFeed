@@ -10,7 +10,7 @@ import UIKit
 final class AuthViewController: UIViewController {
     weak var delegate: AuthViewControllerDelegate?
     
-    private let ShowWebViewSegueIdentifier = "ShowWebView"
+    private let showWebViewSegueIdentifier = "ShowWebView"
     private let oAuth2Service = OAuth2Service.shared
     
     override func viewDidLoad() {
@@ -27,9 +27,9 @@ final class AuthViewController: UIViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == ShowWebViewSegueIdentifier {
+        if segue.identifier == showWebViewSegueIdentifier {
             guard let webViewController = segue.destination as? WebViewViewController else {
-                assertionFailure("Failed to prepare for \(ShowWebViewSegueIdentifier)")
+                assertionFailure("Failed to prepare for \(showWebViewSegueIdentifier)")
                 return
             }
             webViewController.delegate = self
@@ -43,7 +43,9 @@ extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         print("Authorization status code: \(code)")
         oAuth2Service.fetchOAuthToken(code) { [weak self] result in
-            guard let self else { return }
+            guard let self else {
+                return
+            }
             
             switch result {
             case .success(let token):
@@ -56,8 +58,6 @@ extension AuthViewController: WebViewViewControllerDelegate {
                 print("Failed to fetch OAuth token: \(error.localizedDescription)")
             }
         }
-        
-        vc.dismiss(animated: true)
     }
     
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
