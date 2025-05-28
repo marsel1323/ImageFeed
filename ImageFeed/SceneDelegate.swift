@@ -22,7 +22,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     name: "Main",
                     bundle: .main
                 ).instantiateInitialViewController()
-//        window?.rootViewController = SplashViewController()
         window?.makeKeyAndVisible()
     }
 
