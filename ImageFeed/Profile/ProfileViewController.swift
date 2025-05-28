@@ -6,14 +6,24 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
+    
+    private func updateAvatar() {
+        guard let avatarURL = ProfileImageService.shared.avatarURL, let url = URL(string: avatarURL) else { return }
+
+        avatarImageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(named: "userpick")
+        )
+    }
     
     // MARK: - UI Elements
     
     private let avatarImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "avatar")
+        imageView.image = UIImage(named: "userpick")
         imageView.contentMode = .scaleAspectFill
         imageView.layer.cornerRadius = 35 // 70/2
         imageView.clipsToBounds = true
@@ -55,10 +65,30 @@ final class ProfileViewController: UIViewController {
         return button
     }()
     
+    private var profileImageServiceObserver: NSObjectProtocol?
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        guard let profile = ProfileService.shared.profile else { return }
+        
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
+        updateAvatar()
+        
+        nameLabel.text = profile.name
+        loginNameLabel.text = profile.loginName
+        descriptionLabel.text = profile.bio
+        
         logoutButton.addTarget(self, action: #selector(didTapLogoutButton), for: .touchUpInside)
         setupUI()
     }

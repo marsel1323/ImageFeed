@@ -9,13 +9,12 @@ import UIKit
 
 final class AuthViewController: UIViewController {
     weak var delegate: AuthViewControllerDelegate?
-    
     private let showWebViewSegueIdentifier = "ShowWebView"
     private let oAuth2Service = OAuth2Service.shared
+    private weak var viewController: UIViewController?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         configureBackButton()
     }
     
@@ -41,27 +40,34 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        print("Authorization status code: \(code)")
+        // vc.dismiss(animated: true)
+        UIBlockingProgressHUD.show()
+        
         oAuth2Service.fetchOAuthToken(code) { [weak self] result in
-            guard let self else {
-                return
-            }
+            guard let self else { return }
+            
+            UIBlockingProgressHUD.dismiss()
             
             switch result {
             case .success(let token):
-                print("Token: \(token)")
-                
                 OAuth2TokenStorage.shared.token = token
-                
                 self.delegate?.didAuthenticate(self)
-            case .failure(let error):
-                print("Failed to fetch OAuth token: \(error.localizedDescription)")
+            case .failure(let error):                
+                let alert = UIAlertController(
+                    title: "Что-то пошло не так(",
+                    message: "Не удалось войти в систему",
+                    preferredStyle: .alert
+                )
+                
+                let action = UIAlertAction(title: "Ok", style: .default) { _ in }
+                alert.addAction(action)
+                
+                viewController?.present(alert, animated: true)
             }
         }
     }
     
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         vc.dismiss(animated: true)
-        print("Authorization is cancelled")
     }
 }

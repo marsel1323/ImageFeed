@@ -7,40 +7,44 @@
 
 import Foundation
 
-enum HTTPMethods {
-    static let post = "POST"
-}
-
 final class OAuth2Service {
     static let shared = OAuth2Service()
+    
+    private var lastCode: String?
+    private var task: URLSessionTask?
     
     private init() {}
     
     func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let request = makeOAuthTokenRequest(code: code) else {
+        assert(Thread.isMainThread)
+        
+        if lastCode == code {
+            completion(.failure(NetworkError.invalidRequest))
             return
         }
-        print("Request: \(request)")
+        task?.cancel()
+        lastCode = code
         
-        let task = URLSession.shared.data(for: request) { result in
+        guard let request = makeOAuthTokenRequest(code: code) else {
+            completion(.failure(NetworkError.invalidRequest))
+            return
+        }
+        
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, any Error>) in
+            guard let self else { return }
+            
             switch result {
-            case .success(let data):
-                do {                    
-                    let decoder = JSONDecoder()
-                    decoder.keyDecodingStrategy = .convertFromSnakeCase
-                    
-                    let response = try decoder.decode(OAuthTokenResponseBody.self, from: data)
-                    
-                    completion(.success(response.accessToken))
-                } catch {
-                    print("Failed to decode OAuth token response: \(error.localizedDescription)")
-                    completion(.failure(error))
-                }
+            case .success(let responseBody):
+                completion(.success(responseBody.accessToken))
             case .failure(let error):
-                print("Failed to fetch OAuth token: \(error.localizedDescription)")
+                print("Ошибка при запросе: \(error.localizedDescription), url: \(request)")
                 completion(.failure(error))
             }
+            self.task = nil
+            self.lastCode = nil
         }
+        
+        self.task = task
         task.resume()
     }
     
