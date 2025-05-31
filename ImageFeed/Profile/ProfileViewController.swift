@@ -10,15 +10,6 @@ import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
-    private func updateAvatar() {
-        guard let avatarURL = ProfileImageService.shared.avatarURL, let url = URL(string: avatarURL) else { return }
-
-        avatarImageView.kf.setImage(
-            with: url,
-            placeholder: UIImage(named: "userpick")
-        )
-    }
-    
     // MARK: - UI Elements
     
     private let avatarImageView: UIImageView = {
@@ -58,10 +49,11 @@ final class ProfileViewController: UIViewController {
         return label
     }()
     
-    private let logoutButton: UIButton = {
+    private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(named: "logout_button"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(didTapLogoutButton), for: .touchUpInside)
         return button
     }()
     
@@ -89,7 +81,6 @@ final class ProfileViewController: UIViewController {
         loginNameLabel.text = profile.loginName
         descriptionLabel.text = profile.bio
         
-        logoutButton.addTarget(self, action: #selector(didTapLogoutButton), for: .touchUpInside)
         setupUI()
     }
     
@@ -130,6 +121,15 @@ final class ProfileViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func didTapLogoutButton() {
-        // TODO: - Реализовать логику при нажатии на кнопку
+        OAuth2TokenStorage.shared.token = nil
+    }
+    
+    private func updateAvatar() {
+        guard let avatarURL = ProfileImageService.shared.avatarURL, let url = URL(string: avatarURL) else { return }
+
+        avatarImageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(named: "userpick")
+        )
     }
 }

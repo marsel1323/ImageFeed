@@ -57,33 +57,10 @@ final class ProfileImageService {
             return nil
         }
         
-        let method: String = HTTPMethods.get
-        let scheme: String = "https"
         let host: String = "api.unsplash.com"
         let path: String = "/users/\(username)"
-        let queryItems: [URLQueryItem]? = nil
         let headers: [String: String]? = ["Authorization": "Bearer \(token)"]
-        let body: Data? = nil
-        
-        var urlComponents = URLComponents()
-        urlComponents.scheme = scheme
-        urlComponents.host = host
-        urlComponents.path = path
-        urlComponents.queryItems = queryItems
-        
-        guard let url = urlComponents.url else {
-            assertionFailure("Unable to construct URLRequest for \(host)\(path)")
-            return nil
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.httpBody = body
-        
-        headers?.forEach { key, value in
-            request.setValue(value, forHTTPHeaderField: key)
-        }
-        
-        return request
+   
+        return URLRequest.makeRequest(host: host, path: path, headers: headers)
     }
 }
