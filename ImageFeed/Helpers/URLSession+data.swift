@@ -11,6 +11,7 @@ enum NetworkError: Error {
     case httpStatusCode(Int)
     case urlRequestError(Error)
     case urlSessionError
+    case invalidRequest
     
     var localizedDescription: String {
         switch self {
@@ -20,8 +21,15 @@ enum NetworkError: Error {
             return "URL request failed with error: \(error.localizedDescription)"
         case .urlSessionError:
             return "URL session error occurred"
+        case .invalidRequest:
+            return "Invalid URL request"
         }
     }
+}
+
+enum HTTPMethods {
+    static let post = "POST"
+    static let get = "GET"
 }
 
 extension URLSession {
@@ -46,6 +54,28 @@ extension URLSession {
             } else {
                 print(NetworkError.urlSessionError.localizedDescription)
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
+            }
+        }
+        
+        return task
+    }
+    
+    func objectTask<T: Decodable>(for request: URLRequest, completion: @escaping (Result<T, Error>) -> Void) -> URLSessionTask {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        let task = data(for: request) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedData = try decoder.decode(T.self, from: data)
+                    completion(.success(decodedData))
+                } catch {
+                    print("Ошибка декодирования: \(error.localizedDescription), Данные: \(String(data: data, encoding: .utf8) ?? "")")
+                    completion(.failure(error))
+                }
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
         
