@@ -15,7 +15,7 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "userpick")
         imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 35 // 70/2
+        imageView.layer.cornerRadius = 35
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -154,16 +154,7 @@ final class ProfileViewController: UIViewController {
         avatarImageView.kf.setImage(
             with: url,
             placeholder: UIImage(named: "userpick")
-        ) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success(let imageResult):
-                self.isLoading = false
-                // self.updateViewForProfilePhotoLoad(imageResult.image)
-            case .failure:
-                break
-            }
-        }
+        )
     }
     
     private func updateProfileDetails(_ profile: Profile) {

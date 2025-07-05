@@ -26,7 +26,6 @@ final class ImagesListService {
         let nextPage = (lastLoadedPage ?? 0) + 1
         
         guard let request = makePhotosNextPageURLRequest(nextPage) else {
-            // assertionFailure(NetworkError.invalidRequest)
             return
         }
         
@@ -90,12 +89,10 @@ final class ImagesListService {
                     welcomeDescription: photo.welcomeDescription,
                     thumbImageURL: photo.thumbImageURL,
                     largeImageURL: photo.largeImageURL,
-                    // isLiked: photoResult.likedByUser
                     isLiked: !photo.isLiked
                 )
                 
                 self.photos[index] = newPhoto
-                //self.photos = self.photos.withReplaced(itemAt: index, newValue: newPhoto)
                 
                 completion(.success(()))
             case .failure(let error):

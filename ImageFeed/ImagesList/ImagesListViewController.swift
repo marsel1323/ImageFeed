@@ -17,20 +17,9 @@ final class ImagesListViewController: UIViewController, ImagesListCellDelegate {
     private var imagesListServiceObserver: NSObjectProtocol?
     private var imagesListServiceErrorObserver: NSObjectProtocol?
     
-    //    private let currentDate = Date()
-    
-    //    private lazy var dateFormatter: DateFormatter = {
-    //        let formatter = DateFormatter()
-    //        formatter.dateStyle = .long
-    //        formatter.timeStyle = .none
-    //        return formatter
-    //    }()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12,right: 0)
-        
+                
         setupNotificationObserver()
         ImagesListService.shared.fetchPhotosNextPage()
     }
@@ -59,18 +48,6 @@ final class ImagesListViewController: UIViewController, ImagesListCellDelegate {
                 self.updateTableViewAnimated()
             }
         )
-        
-        //        imagesListServiceErrorObserver = NotificationCenter.default.addObserver(
-        //                forName: ImagesListService.didFailNotification,
-        //                object: nil,
-        //                queue: .main,
-        //                using: { [weak self] _ in
-        //                    guard let self else { return }
-        //                    self.showSomethingWentWrongError {
-        //                        ImagesListService.shared.fetchPhotosNextPage()
-        //                    }
-        //                }
-        //            )
     }
     
     func imageListCellDidTapLike(_ cell: ImagesListCell) {
@@ -120,16 +97,6 @@ extension ImagesListViewController: UITableViewDataSource {
 
 extension ImagesListViewController {
     private func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
-        //        guard let image = UIImage(named: photos[indexPath.row].thumbImageURL) else {
-        //            return
-        //        }
-        //
-        //        cell.cellImage.image = image
-        //        cell.dateLabel.text = dateFormatter.string(from: currentDate)
-        //
-        //        let isLiked = indexPath.row % 2 == 0
-        //        let likeImage = isLiked ? UIImage(named: "like_button_on") : UIImage(named: "like_button_off")
-        //        cell.likeButton.setImage(likeImage, for: .normal)
         cell.config(with: photos[indexPath.row])
         cell.delegate = self
     }
@@ -138,15 +105,6 @@ extension ImagesListViewController {
 extension ImagesListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
-        
-        //        let controller = SingleImageViewController()
-        //        controller.configure(with: photos[indexPath.row])
-        //        controller.modalPresentationStyle = .fullScreen
-        //        present(controller, animated: true)
-        //
-        //        controller.imageView.kf.setImage(with: photos[indexPath.row].largeImageURL) { [weak self] result in
-        //
-        //        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -161,15 +119,11 @@ extension ImagesListViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        //        guard let image = UIImage(named: photos[indexPath.row].thumbImageURL) else {
-        //            return 0
-        //        }
         let image = photos[indexPath.row]
         
         let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
         let imageViewWidth = tableView.bounds.width - imageInsets.left - imageInsets.right
         let imageWidth = image.size.width
-        //        let imageViewWidth = view.bounds.width - imageInsets.left - imageInsets.right
         let scale = imageViewWidth / imageWidth
         let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
         
