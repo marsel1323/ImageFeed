@@ -29,6 +29,7 @@ final class ProfileService {
         
         let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<ProfileResult, any Error>) in
             guard let self else { return }
+            
             switch result {
             case .success(let responseBody):
                 let profile = Profile(from: responseBody)
@@ -50,6 +51,15 @@ final class ProfileService {
         let path: String = "/me"
         let headers: [String: String]? = ["Authorization": "Bearer \(token)"]
         
-        return URLRequest.makeRequest(host: host, path: path, headers: headers)
+        return URLRequest.makeRequest(
+            host: host,
+            path: path,
+            method: HTTPMethods.get,
+            headers: headers
+        )
+    }
+    
+    func resetProfile() {
+        profile = nil
     }
 }
