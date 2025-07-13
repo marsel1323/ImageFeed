@@ -30,7 +30,7 @@ final class ProfileImageService {
             guard let self else { return }
             switch result {
             case .success(let responseBody):
-                let profileImageURL = responseBody.profileImage.small
+                let profileImageURL = responseBody.profileImage.large
                 self.avatarURL = profileImageURL
                 completion(.success(profileImageURL))
                 
@@ -52,7 +52,7 @@ final class ProfileImageService {
     }
     
     private func makeURLRequest(_ username: String) -> URLRequest? {
-        guard let token = OAuth2TokenStorage.shared.token else {
+        guard let token = OAuth2TokenStorage().token else {
             assertionFailure("oauth token is required")
             return nil
         }
@@ -62,5 +62,9 @@ final class ProfileImageService {
         let headers: [String: String]? = ["Authorization": "Bearer \(token)"]
    
         return URLRequest.makeRequest(host: host, path: path, headers: headers)
+    }
+    
+    func resetAvatarURL() {
+        avatarURL = nil
     }
 }

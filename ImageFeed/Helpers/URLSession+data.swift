@@ -75,6 +75,7 @@ extension URLSession {
                     completion(.failure(error))
                 }
             case .failure(let error):
+                print("При запросе к '\(request)' произошла ошибка: \(error.localizedDescription)")
                 completion(.failure(error))
             }
         }

@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
@@ -16,7 +15,7 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "userpick")
         imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 35 // 70/2
+        imageView.layer.cornerRadius = 35
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -58,29 +57,21 @@ final class ProfileViewController: UIViewController {
     }()
     
     private var profileImageServiceObserver: NSObjectProtocol?
+    private lazy var alertPresenter = AlertPresenter(viewController: self)
+    private let splashViewControllerIdentifier = "SplashViewController"
+    private var isLoading = true
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupNotificationObserver()
+        
         guard let profile = ProfileService.shared.profile else { return }
         
-        profileImageServiceObserver = NotificationCenter.default
-            .addObserver(
-                forName: ProfileImageService.didChangeNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                self.updateAvatar()
-            }
+        updateProfileDetails(profile)
         updateAvatar()
-        
-        nameLabel.text = profile.name
-        loginNameLabel.text = profile.loginName
-        descriptionLabel.text = profile.bio
-        
         setupUI()
     }
     
@@ -121,15 +112,66 @@ final class ProfileViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func didTapLogoutButton() {
-        OAuth2TokenStorage.shared.token = nil
+        let alertModel = AlertModel(
+            title: "Пока, пока!",
+            message: "Уверены что хотите выйти?",
+            buttons: [
+                (
+                    title: "Да",
+                    completion: { [weak self] in
+                        guard let self else { return }
+                        ProfileLogoutService.shared.logout()
+                        self.switchToSplashViewController()
+                    }),
+                (
+                    title: "Нет",
+                    completion: nil
+                )
+            ]
+        )
+        alertPresenter.showAlert(alertModel: alertModel)
+    }
+    
+    func switchToSplashViewController() {
+        let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        guard let window = windowScene?.windows.first else {
+            assertionFailure("Invalid window configuration")
+            return
+        }
+        
+        let splashViewController = UIStoryboard(name: "Main", bundle: .main)
+            .instantiateViewController(withIdentifier: splashViewControllerIdentifier)
+        
+        window.rootViewController = splashViewController
     }
     
     private func updateAvatar() {
-        guard let avatarURL = ProfileImageService.shared.avatarURL, let url = URL(string: avatarURL) else { return }
-
+        guard
+            let avatarURL = ProfileImageService.shared.avatarURL,
+            let url = URL(string: avatarURL)
+        else { return }
+        
         avatarImageView.kf.setImage(
             with: url,
             placeholder: UIImage(named: "userpick")
         )
+    }
+    
+    private func updateProfileDetails(_ profile: Profile) {
+        nameLabel.text = profile.name
+        loginNameLabel.text = profile.loginName
+        descriptionLabel.text = profile.bio
+    }
+    
+    private func setupNotificationObserver() {
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
     }
 }

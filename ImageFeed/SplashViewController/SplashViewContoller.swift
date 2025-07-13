@@ -10,7 +10,7 @@ import UIKit
 final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     private let tabBarViewControllerIdentifier = "TabBarViewController"
-    private let oauth2TokenStorage = OAuth2TokenStorage.shared
+    private lazy var alertPresenter = AlertPresenter(viewController: self)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,14 +19,11 @@ final class SplashViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if oauth2TokenStorage.token != nil {
-            guard let token = oauth2TokenStorage.token else { return }
-            
-            fetchProfile(token)
-            switchToTabBarController()
-        } else {
+        guard let token = OAuth2TokenStorage().token else {
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
+            return
         }
+        fetchProfile(token)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -72,11 +69,10 @@ extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         vc.dismiss(animated: true)
         
-        guard let token = OAuth2TokenStorage.shared.token else {
+        guard let token = OAuth2TokenStorage().token else {
             assertionFailure("oauth token is required")
             return
         }
-        
         fetchProfile(token)
     }
     
@@ -93,7 +89,20 @@ extension SplashViewController: AuthViewControllerDelegate {
                 ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { _ in }
                 self.switchToTabBarController()
             case .failure:
-                break
+                let alertModel = AlertModel(
+                    title: "Что-то пошло не так(",
+                    message: "Не удалось войти в систему",
+                    buttons: [
+                        (
+                            title: "Ок",
+                            completion: { [weak self] in
+                                guard let self else { return }
+                                performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
+                            }
+                        )
+                    ]
+                )
+                alertPresenter.showAlert(alertModel: alertModel)
             }
         }
     }

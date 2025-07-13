@@ -49,9 +49,9 @@ extension AuthViewController: WebViewViewControllerDelegate {
             
             switch result {
             case .success(let token):
-                OAuth2TokenStorage.shared.token = token
+                OAuth2TokenStorage().token = token
                 self.delegate?.didAuthenticate(self)
-            case .failure(let error):                
+            case .failure(let error):
                 let alert = UIAlertController(
                     title: "Что-то пошло не так(",
                     message: "Не удалось войти в систему",
