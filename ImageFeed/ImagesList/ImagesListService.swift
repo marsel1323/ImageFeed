@@ -7,6 +7,10 @@
 
 import Foundation
 
+enum PhotoUpdateError: Error {
+    case photoNotFound
+}
+
 final class ImagesListService {
     
     static let shared = ImagesListService()
@@ -25,81 +29,93 @@ final class ImagesListService {
         
         let nextPage = (lastLoadedPage ?? 0) + 1
         
-        guard let request = makePhotosNextPageURLRequest(nextPage) else {
-            return
-        }
+        guard let request = makePhotosNextPageURLRequest(nextPage) else { return }
         
-        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<[PhotoResult], any Error>) in
+        task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<[PhotoResult], any Error>) in
             guard let self else { return }
             
+            defer { self.task = nil }
+            
             switch result {
-            case .success(let photoResult):
-                do {
-                    let photos = try photoResult.map { try Photo(from: $0) }
-                    let newPhotos = photos.filter { photo in
-                        !self.photos.contains(where: { $0.id == photo.id })
-                    }
-                    self.photos.append(contentsOf: newPhotos)
-                    self.lastLoadedPage = nextPage
-                    NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: self)
-                } catch {
-                    // TODO: log error
-                    NotificationCenter.default.post(
-                        name: ImagesListService.didFailNotification,
-                        object: self,
-                        userInfo: ["error": error]
-                    )
-                }
+            case .success(let photoResults):
+                self.handlePhotoResults(photoResults, nextPage: nextPage)
             case .failure(let error):
-                // TODO: log error
-                NotificationCenter.default.post(
-                    name: ImagesListService.didFailNotification,
-                    object: self,
-                    userInfo: ["error": error]
-                )
+                self.handlePhotosLoadingError(error)
             }
-            self.task = nil
         }
-        self.task = task
-        task.resume()
+        
+        task?.resume()
+    }
+    
+    private func handlePhotoResults(_ photoResults: [PhotoResult], nextPage: Int) {
+        do {
+            let newPhotos = try photoResults
+                .map { try Photo(from: $0) }
+                .filter { newPhoto in
+                    !self.photos.contains(where: { $0.id == newPhoto.id })
+                }
+            
+            photos.append(contentsOf: newPhotos)
+            lastLoadedPage = nextPage
+            
+            NotificationCenter.default.post(
+                name: ImagesListService.didChangeNotification,
+                object: self
+            )
+        } catch {
+            handlePhotosLoadingError(error)
+        }
+    }
+    
+    private func handlePhotosLoadingError(_ error: Error) {
+        print("Ошибка при загрузке фотографий: \(error.localizedDescription)")
+        NotificationCenter.default.post(
+            name: ImagesListService.didFailNotification,
+            object: self,
+            userInfo: ["error": error]
+        )
     }
     
     func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void) {
         guard let request = makeChangeLikeRequest(photoId: photoId, with: isLike ? "POST" : "DELETE") else {
             return
         }
-        
+
         let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<PhotoLikeResult, any Error>) in
             guard let self else { return }
-            
+
             switch result {
             case .success(let likeResult):
-                let photoResult = likeResult.photo
-                guard let index = self.photos.firstIndex(where: {
-                    $0.id == photoResult.id
-                }) else {
-                    return
-                }
-                
-                let photo = self.photos[index]
-                let newPhoto = Photo(
-                    id: photo.id,
-                    size: photo.size,
-                    createdAt: photo.createdAt,
-                    welcomeDescription: photo.welcomeDescription,
-                    thumbImageURL: photo.thumbImageURL,
-                    largeImageURL: photo.largeImageURL,
-                    isLiked: !photo.isLiked
-                )
-                
-                self.photos[index] = newPhoto
-                
-                completion(.success(()))
+                self.updatePhotoLikeStatus(with: likeResult.photo, completion: completion)
             case .failure(let error):
+                print("❌ Ошибка при изменении лайка: \(error)")
                 completion(.failure(error))
             }
         }
+
         task.resume()
+    }
+
+    private func updatePhotoLikeStatus(with updatedPhoto: PhotoResult, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let index = photos.firstIndex(where: { $0.id == updatedPhoto.id }) else {
+            print("⚠️ Не удалось найти фото с id: \(updatedPhoto.id)")
+            completion(.failure(PhotoUpdateError.photoNotFound))
+            return
+        }
+
+        let oldPhoto = photos[index]
+        let newPhoto = Photo(
+            id: oldPhoto.id,
+            size: oldPhoto.size,
+            createdAt: oldPhoto.createdAt,
+            welcomeDescription: oldPhoto.welcomeDescription,
+            thumbImageURL: oldPhoto.thumbImageURL,
+            largeImageURL: oldPhoto.largeImageURL,
+            isLiked: !oldPhoto.isLiked
+        )
+
+        photos[index] = newPhoto
+        completion(.success(()))
     }
     
     private func makePhotosNextPageURLRequest(_ page: Int) -> URLRequest? {
