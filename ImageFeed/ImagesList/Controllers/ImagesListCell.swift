@@ -42,6 +42,8 @@ final class ImagesListCell: UITableViewCell {
         
         imageState = .loading
         
+        likeButton.accessibilityIdentifier = "Like"
+        
         cellImage.kf.indicatorType = .activity
         cellImage.kf.setImage(
             with: url,
@@ -81,6 +83,9 @@ final class ImagesListCell: UITableViewCell {
     }
     
     func setIsLiked(_ isLiked: Bool) {
-        likeButton.setImage(isLiked ? UIImage(named: "like_button_on") : UIImage(named: "like_button_off"), for: .normal)
+        likeButton.setImage(
+            isLiked ? UIImage(named: "like_button_on") : UIImage(named: "like_button_off"),
+            for: .normal
+        )
     }
 }

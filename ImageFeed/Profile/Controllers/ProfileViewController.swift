@@ -7,7 +7,15 @@
 
 import UIKit
 
-final class ProfileViewController: UIViewController {
+public protocol ProfileViewControllerProtocol: AnyObject {
+    var presenter: ProfilePresenterProtocol? { get set }
+    func setProfileDetails(profile: Profile)
+    func setAvatarImage(with url: URL)
+    func showAlert(_ alertModel: AlertModel)
+    func switchToSplashViewController()
+}
+
+final class ProfileViewController: UIViewController & ProfileViewControllerProtocol {
     
     // MARK: - UI Elements
     
@@ -50,29 +58,24 @@ final class ProfileViewController: UIViewController {
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .custom)
+        button.accessibilityIdentifier = "logout"
         button.setImage(UIImage(named: "logout_button"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(didTapLogoutButton), for: .touchUpInside)
         return button
     }()
     
-    private var profileImageServiceObserver: NSObjectProtocol?
+    var presenter: ProfilePresenterProtocol?
     private lazy var alertPresenter = AlertPresenter(viewController: self)
     private let splashViewControllerIdentifier = "SplashViewController"
-    private var isLoading = true
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupNotificationObserver()
-        
-        guard let profile = ProfileService.shared.profile else { return }
-        
-        updateProfileDetails(profile)
-        updateAvatar()
         setupUI()
+        presenter?.viewDidLoad()
     }
     
     // MARK: - Setup Methods
@@ -111,25 +114,8 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Actions
     
-    @objc private func didTapLogoutButton() {
-        let alertModel = AlertModel(
-            title: "Пока, пока!",
-            message: "Уверены что хотите выйти?",
-            buttons: [
-                (
-                    title: "Да",
-                    completion: { [weak self] in
-                        guard let self else { return }
-                        ProfileLogoutService.shared.logout()
-                        self.switchToSplashViewController()
-                    }),
-                (
-                    title: "Нет",
-                    completion: nil
-                )
-            ]
-        )
-        alertPresenter.showAlert(alertModel: alertModel)
+    @objc private func didTapLogoutButton() {      
+        presenter?.userDidLogout()
     }
     
     func switchToSplashViewController() {
@@ -145,33 +131,20 @@ final class ProfileViewController: UIViewController {
         window.rootViewController = splashViewController
     }
     
-    private func updateAvatar() {
-        guard
-            let avatarURL = ProfileImageService.shared.avatarURL,
-            let url = URL(string: avatarURL)
-        else { return }
-        
+    func setAvatarImage(with url: URL) {
         avatarImageView.kf.setImage(
             with: url,
             placeholder: UIImage(named: "userpick")
         )
     }
     
-    private func updateProfileDetails(_ profile: Profile) {
+    func setProfileDetails(profile: Profile) {
         nameLabel.text = profile.name
         loginNameLabel.text = profile.loginName
         descriptionLabel.text = profile.bio
     }
     
-    private func setupNotificationObserver() {
-        profileImageServiceObserver = NotificationCenter.default
-            .addObserver(
-                forName: ProfileImageService.didChangeNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                self.updateAvatar()
-            }
+    func showAlert(_ alertModel: AlertModel) {
+        alertPresenter.showAlert(alertModel: alertModel)
     }
 }
