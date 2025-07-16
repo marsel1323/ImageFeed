@@ -47,7 +47,7 @@ final class ImagesListService {
         task?.resume()
     }
     
-    private func handlePhotoResults(_ photoResults: [PhotoResult], nextPage: Int) {
+    func handlePhotoResults(_ photoResults: [PhotoResult], nextPage: Int) {
         do {
             let newPhotos = try photoResults
                 .map { try Photo(from: $0) }
@@ -96,7 +96,7 @@ final class ImagesListService {
         task.resume()
     }
 
-    private func updatePhotoLikeStatus(with updatedPhoto: PhotoResult, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updatePhotoLikeStatus(with updatedPhoto: PhotoResult, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let index = photos.firstIndex(where: { $0.id == updatedPhoto.id }) else {
             print("⚠️ Не удалось найти фото с id: \(updatedPhoto.id)")
             completion(.failure(PhotoUpdateError.photoNotFound))

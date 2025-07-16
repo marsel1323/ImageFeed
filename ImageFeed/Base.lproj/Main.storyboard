@@ -13,7 +13,7 @@
         <!--ImageList-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController title="ImageList" id="BYZ-38-t0r" customClass="ImagesListViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="ImagesListViewController" title="ImageList" useStoryboardIdentifierAsRestorationIdentifier="YES" id="BYZ-38-t0r" customClass="ImagesListViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -41,6 +41,7 @@
                                                 </imageView>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sU2-mn-LNl" userLabel="Like Button">
                                                     <rect key="frame" x="354" y="4" width="44" height="44"/>
+                                                    <accessibility key="accessibilityConfiguration" identifier="Like"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="44" id="jvW-bm-Uz2"/>
                                                         <constraint firstAttribute="height" constant="44" id="mNN-FZ-BRD"/>
@@ -129,6 +130,7 @@
                             </scrollView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8sd-vz-3Nt">
                                 <rect key="frame" x="8" y="56" width="48" height="48"/>
+                                <accessibility key="accessibilityConfiguration" identifier="Back"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="48" id="JGr-ew-Ug1"/>
                                     <constraint firstAttribute="height" constant="48" id="UJm-Wr-qFL"/>
@@ -195,7 +197,7 @@
         <!--Tab Bar View Controller-->
         <scene sceneID="49A-Ox-cJg">
             <objects>
-                <tabBarController storyboardIdentifier="TabBarViewController" id="yLp-Bl-IAD" customClass="TabBarViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
+                <tabBarController storyboardIdentifier="TabBarViewController" id="yLp-Bl-IAD" customClass="TabBarViewController" customModule="ImageFeed" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="aiQ-3u-hFo">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -227,6 +229,7 @@
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MhJ-bC-wSV">
                                 <rect key="frame" x="16" y="724" width="382" height="48"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <accessibility key="accessibilityConfiguration" identifier="Authenticate"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="48" id="pCs-Gx-Sft"/>
                                 </constraints>
@@ -288,7 +291,7 @@
         <!--Web View View Controller-->
         <scene sceneID="A3y-ow-Xrq">
             <objects>
-                <viewController id="aMj-oI-XhD" customClass="WebViewViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="WebViewViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="aMj-oI-XhD" customClass="WebViewViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="fFl-Zs-HIL">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -308,6 +311,7 @@
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Z7y-lJ-cM3"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <accessibility key="accessibilityConfiguration" identifier="UnsplashWebView"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="L1k-gv-Sj4" secondAttribute="trailing" id="BQx-Sq-OWd"/>
                             <constraint firstItem="Z7y-lJ-cM3" firstAttribute="trailing" secondItem="cDm-G7-vHd" secondAttribute="trailing" id="GVa-ca-do9"/>

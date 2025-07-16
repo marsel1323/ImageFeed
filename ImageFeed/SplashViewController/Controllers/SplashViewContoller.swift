@@ -10,6 +10,9 @@ import UIKit
 final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     private let tabBarViewControllerIdentifier = "TabBarViewController"
+    
+    private lazy var oAuth2TokenStorage = OAuth2TokenStorage()
+    private lazy var isAuthenticationCompleted = oAuth2TokenStorage.token != nil
     private lazy var alertPresenter = AlertPresenter(viewController: self)
     
     override func viewDidLoad() {
@@ -19,8 +22,11 @@ final class SplashViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        guard let token = OAuth2TokenStorage().token else {
+        if !isAuthenticationCompleted {
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
+            return
+        }
+        guard let token = oAuth2TokenStorage.token else {
             return
         }
         fetchProfile(token)
@@ -68,12 +74,7 @@ extension SplashViewController {
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         vc.dismiss(animated: true)
-        
-        guard let token = OAuth2TokenStorage().token else {
-            assertionFailure("oauth token is required")
-            return
-        }
-        fetchProfile(token)
+        isAuthenticationCompleted = true
     }
     
     func fetchProfile(_ token: String) {

@@ -26,6 +26,11 @@ final class ProfileService {
             completion(.failure(NetworkError.invalidRequest))
             return
         }
+        print(request)
+        print(request.url)
+        print(request.httpMethod)
+        print(request.httpBody)
+        print(request.allHTTPHeaderFields)
         
         let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<ProfileResult, any Error>) in
             guard let self else { return }

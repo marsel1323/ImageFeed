@@ -30,7 +30,6 @@ final class SingleImageViewController: UIViewController {
         scrollView.maximumZoomScale = 1.25
         
         loadImage()
-
     }
     
     @IBAction private func didTapBackButton() {
